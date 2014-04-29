@@ -204,66 +204,67 @@ def benchmark(clf):
     return clf_descr, score, train_time, test_time
 
 # GROUP 3: start
-results = []
+results = [] # Initialize result in an empty list
 for clf, name in (
         (RidgeClassifier(tol=1e-2, solver="lsqr"), "Ridge Classifier"),
         (Perceptron(n_iter=50), "Perceptron"),
         (PassiveAggressiveClassifier(n_iter=50), "Passive-Aggressive"),
-        (KNeighborsClassifier(n_neighbors=10), "kNN")):
-    print('=' * 80)
-    print(name)
-    results.append(benchmark(clf))
+        (KNeighborsClassifier(n_neighbors=10), "kNN")): #Looping through each classifier result
+    print('=' * 80) # printing equal sign 80 times on the terminal
+    print(name) # printing each name on terminal
+    results.append(benchmark(clf)) # Calling benchmark on the classifier result and appending the result to the list
 
-for penalty in ["l2", "l1"]:
+for penalty in ["l2", "l1"]: # Initializing and looping through the penalties L1 and L2
     print('=' * 80)
-    print("%s penalty" % penalty.upper())
+    print("%s penalty" % penalty.upper()) # Prinitng the uppercase on L1 and L2
     results.append(benchmark(LinearSVC(loss='l2', penalty=penalty,
-                                            dual=False, tol=1e-3)))
+                                            dual=False, tol=1e-3))) # Appending the result of the linear SVC with the assigned penalty
 
     results.append(benchmark(SGDClassifier(alpha=.0001, n_iter=50,
-                                           penalty=penalty)))
+                                           penalty=penalty))) # Appending the result of the SGDC classifier with the assigned penalty
 
 print('=' * 80)
 print("Elastic-Net penalty")
 results.append(benchmark(SGDClassifier(alpha=.0001, n_iter=50,
-                                       penalty="elasticnet")))
+                                       penalty="elasticnet"))) # Appending the result of the SGDC classifier with the elasticnet penalty
 
 print('=' * 80)
 print("NearestCentroid (aka Rocchio classifier)")
-results.append(benchmark(NearestCentroid()))
+results.append(benchmark(NearestCentroid())) # Appending the result of Nearest Centroid to benchmark
 
 print('=' * 80)
 print("Naive Bayes")
-results.append(benchmark(MultinomialNB(alpha=.01)))
-results.append(benchmark(BernoulliNB(alpha=.01)))
+results.append(benchmark(MultinomialNB(alpha=.01))) # Appending the result of MultinomiaNB to benchmark
+results.append(benchmark(BernoulliNB(alpha=.01))) # Appending the result of BernoulliNB to benchmark
 
 
-class L1LinearSVC(LinearSVC):
+class L1LinearSVC(LinearSVC): # Creating new class L1LinearSVC with two methods, fit and predict
 
-    def fit(self, X, y):
+    def fit(self, X, y): # This method acts on itself with X and y
         self.transformer_ = LinearSVC(penalty="l1",
-                                      dual=False, tol=1e-3)
-        X = self.transformer_.fit_transform(X, y)
-        return LinearSVC.fit(self, X, y)
+                                      dual=False, tol=1e-3) # This is changing all the defaults for LinearSVC
+        X = self.transformer_.fit_transform(X, y) # Assigning X with the new parameters for LinearSVC performing fit_transform operation
+        return LinearSVC.fit(self, X, y) # Returns the fit with the new X with the default LinearSVC parameters
 
-    def predict(self, X):
-        X = self.transformer_.transform(X)
-        return LinearSVC.predict(self, X)
+    def predict(self, X): # Predicts the outcome based on the test dataset X
+        X = self.transformer_.transform(X) # Perform a transform on X using the updated defaults for LinearSVC
+        return LinearSVC.predict(self, X) # returns the predicted score on the transformed data X
 
 print('=' * 80)
 print("LinearSVC with L1-based feature selection")
-results.append(benchmark(L1LinearSVC()))
+results.append(benchmark(L1LinearSVC())) # Append the results of the linearSVC to the exisiting list
 
 
 
-indices = np.arange(len(results))
+indices = np.arange(len(results)) # Length of the results
 
-results = [[x[i] for x in results] for i in range(4)]
+results = [[x[i] for x in results] for i in range(4)] # Iterating through the classifier output results
 
-clf_names, score, training_time, test_time = results
-training_time = np.array(training_time) / np.max(training_time)
-test_time = np.array(test_time) / np.max(test_time)
+clf_names, score, training_time, test_time = results # Assigns order of classifier output with these names
+training_time = np.array(training_time) / np.max(training_time) # Normalizing the training time
+test_time = np.array(test_time) / np.max(test_time) # Normalizing the test time
 
+# Plotting the graph with the following configs
 pl.figure(figsize=(12,8))
 pl.title("Score")
 pl.barh(indices, score, .2, label="score", color='r')
@@ -275,7 +276,7 @@ pl.subplots_adjust(left=.25)
 pl.subplots_adjust(top=.95)
 pl.subplots_adjust(bottom=.05)
 
-for i, c in zip(indices, clf_names):
+for i, c in zip(indices, clf_names): # Looping through the indicies with clf_names
     pl.text(-.3, i, c)
 
 pl.show()
