@@ -188,26 +188,53 @@ else:
 
 # GROUP 2: start
 def benchmark(clf):
+    """ 
+    Description:
+    - Returns the time, score, description and relevant optional descriptive statistics/reports on how well a model runs 
+
+    Arguments: 
+    - clf: A classifier object (ie LinearSVC, MultinomialNB, SGDClassifier)
+
+    Returns: 
+    - clf_descr: The name of the model (ie LinearSVC)
+    - score: The F1 score of the model, using clf.f1_score()
+    - train_time: Time (in seconds) to fit the model using clf.fit()
+    - test_time: Time (in seconds) to test the model using clf.predict()
+
+    """
+
     print('_' * 80)
     print("Training: ")
     print(clf)
+    
+    # Train model, record time elapsed
     t0 = time()
     clf.fit(X_train, y_train)
     train_time = time() - t0
     print("train time: %0.3fs" % train_time)
 
+    # Test model, record time elapsed
     t0 = time()
     pred = clf.predict(X_test)
     test_time = time() - t0
     print("test time:  %0.3fs" % test_time)
 
+    # Calculates the f1 score, comparing between precision and recall for each model
     score = metrics.f1_score(y_test, pred)
     print("f1-score:   %0.3f" % score)
 
+    # Grabs the description of the model by parsing the clf
+    clf_descr = str(clf).split('(')[0]  
+    print('clf_descr: %s' % clf_descr)
+
+
     if hasattr(clf, 'coef_'):
+
+        #Print the dimensionality and density of a model
         print("dimensionality: %d" % clf.coef_.shape[1])
         print("density: %f" % density(clf.coef_))
 
+        #Option to print the top 10 feature names of a model
         if opts.print_top10 and feature_names is not None:
             print("top 10 keywords per class:")
             for i, category in enumerate(categories):
@@ -216,17 +243,21 @@ def benchmark(clf):
                       % (category, " ".join(feature_names[top10]))))
         print()
 
+    #Option to print a classification report of a model 
     if opts.print_report:
         print("classification report:")
         print(metrics.classification_report(y_test, pred,
                                             target_names=categories))
-
+    
+    #Option to print the confusion matrix of a model
     if opts.print_cm:
         print("confusion matrix:")
         print(metrics.confusion_matrix(y_test, pred))
 
     print()
-    clf_descr = str(clf).split('(')[0]
+    
+
+    #returns the following for every model
     return clf_descr, score, train_time, test_time
 
 # GROUP 3: start
